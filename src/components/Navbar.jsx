@@ -1,5 +1,6 @@
 import { Box, Flex, Button, Link, Text, useColorModeValue, HStack, Image, Menu, MenuButton, MenuList, MenuItem, MenuDivider } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { FaGithub, FaDiscord, FaWallet } from 'react-icons/fa'
 import { useWallet } from '../contexts/WalletContext'
 
@@ -17,28 +18,19 @@ const Navbar = () => {
         <Flex alignItems="center" gap={8}>
           <Link as={RouterLink} to="/" display="flex" alignItems="center" gap={2}>
             <Image src="/logo.png" alt="Logo" h={8} />
-            <Text fontSize="xl" fontWeight="bold">Carbon Market</Text>
+            <Text className='logo-text' fontSize="xl" fontWeight="bold">Carbon Market</Text>
           </Link>
 
-          <HStack spacing={6}>
-            <Link as={RouterLink} to="/overview">Overview</Link>
-            <Link as={RouterLink} to="/carbon-pools">Carbon Pools</Link>
-            <Link as={RouterLink} to="/explorer">Explorer</Link>
-            <Link as={RouterLink} to="/cross-chain">Cross-Chain</Link>
-            <Link as={RouterLink} to="/retirements">Retirements</Link>
-          </HStack>
         </Flex>
+          <HStack spacing={6}>
+            <NavLink as={RouterLink} to="/overview">Overview</NavLink>
+            <NavLink as={RouterLink} to="/carbon-pools">Carbon Pools</NavLink>
+            <NavLink as={RouterLink} to="/explorer">Explorer</NavLink>
+            <NavLink as={RouterLink} to="/cross-chain">Cross-Chain</NavLink>
+            <NavLink as={RouterLink} to="/retirements">Retirements</NavLink>
+          </HStack>
 
         <Flex alignItems="center" gap={4}>
-          <Link href="https://docs.toucan.earth" isExternal>
-            <Text>Docs</Text>
-          </Link>
-          <Link href="https://github.com/toucan-protocol" isExternal>
-            <FaGithub size={20} />
-          </Link>
-          <Link href="https://discord.gg/toucan" isExternal>
-            <FaDiscord size={20} />
-          </Link>
           
           {account ? (
             <Menu>
