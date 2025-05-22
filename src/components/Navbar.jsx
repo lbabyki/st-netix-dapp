@@ -1,8 +1,16 @@
-import { Box, Flex, Button, Link, Text, useColorModeValue, HStack, Image } from '@chakra-ui/react'
+import { Box, Flex, Button, Link, Text, useColorModeValue, HStack, Image, Menu, MenuButton, MenuList, MenuItem, MenuDivider } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
-import { FaGithub, FaDiscord } from 'react-icons/fa'
+import { FaGithub, FaDiscord, FaWallet } from 'react-icons/fa'
+import { useWallet } from '../contexts/WalletContext'
 
 const Navbar = () => {
+  const { account, connectWallet, disconnectWallet, isConnecting } = useWallet()
+
+  const formatAddress = (address) => {
+    if (!address) return ''
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
   return (
     <Box bg={useColorModeValue('white', 'gray.800')} px={4} shadow="sm">
       <Flex h={16} alignItems="center" justifyContent="space-between" maxW="1200px" mx="auto">
@@ -31,9 +39,34 @@ const Navbar = () => {
           <Link href="https://discord.gg/toucan" isExternal>
             <FaDiscord size={20} />
           </Link>
-          <Button colorScheme="blue">
-            Connect Wallet
-          </Button>
+          
+          {account ? (
+            <Menu>
+              <MenuButton
+                as={Button}
+                leftIcon={<FaWallet />}
+                colorScheme="blue"
+                variant="outline"
+              >
+                {formatAddress(account)}
+              </MenuButton>
+              <MenuList>
+                <MenuItem>View Profile</MenuItem>
+                <MenuItem>My Carbon Assets</MenuItem>
+                <MenuDivider />
+                <MenuItem onClick={disconnectWallet}>Disconnect</MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <Button
+              colorScheme="blue"
+              onClick={connectWallet}
+              isLoading={isConnecting}
+              loadingText="Connecting..."
+            >
+              Connect Wallet
+            </Button>
+          )}
         </Flex>
       </Flex>
     </Box>
