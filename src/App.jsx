@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import Overview from './pages/Overview'
-import CarbonPools from './pages/CarbonPools'
-import Explorer from './pages/Explorer'
-import CrossChain from './pages/CrossChain'
-import Retirements from './pages/Retirements'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar/Navbar';
+import Home from './pages/Home';
+import Overview from './pages/Overview';
+import CarbonPools from './pages/CarbonPools';
+import Explorer from './pages/Explorer';
+import CrossChain from './pages/CrossChain';
+import Retirements from './pages/Retirements';
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
         <Route path="/retirements" element={<Retirements />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

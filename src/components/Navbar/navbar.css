@@ -1,0 +1,49 @@
+.btn-active-hovered {
+  background-color: #ffffff; /* Màu nền mặc định */
+  transition: background-color 0.5s ease-in-out, box-shadow 0.3s ease-in-out;
+  border: none;
+}
+
+.btn-active-hovered:hover {
+  background-color: #007500 !important;
+  box-shadow: 0 0 10px #10fe10, 0 0 20px #5dfe5d;
+}
+.nav-item {
+  font-size: 18px;
+  transition: color 0.3s ease-in-out;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: green;
+  border-bottom: solid 2px green;
+}
+
+.logo-text {
+  font-size: 2rem; /* Kích thước chữ */
+  font-weight: bold; /* Làm chữ đậm */
+  text-align: center; /* Căn giữa */
+
+  /* Gradient màu chữ */
+  background: linear-gradient(45deg, #059805, #04cf04cd, #059805);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* Giữ gradient mà không bị phủ màu chữ */
+
+  /* Border dưới ngắn */
+  position: relative;
+  display: inline-block;
+}
+
+.logo-text::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; /* Khoảng cách border với chữ */
+  left: 50%;
+  width: 20%; /* Chỉ bằng 1/5 chiều rộng */
+  height: 2px; /* Độ dày border */
+  background-color: #00ff00; /* Màu xanh lá neon */
+  transform: translateX(-50%); /* Căn giữa */
+
+  /* Hiệu ứng phát sáng */
+  box-shadow: 0 0 2px #00ff00, 0 0 10px #00ff00;
+}
