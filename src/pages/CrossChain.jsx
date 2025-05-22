@@ -25,9 +25,26 @@ import {
   NumberDecrementStepper,
   useToast,
   Textarea,
+  Select,
+  Tooltip,
+  Icon,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCarbon } from '../contexts/CarbonContext'
+import { FaInfoCircle } from 'react-icons/fa'
+import {
+  SUPPORTED_REGISTRIES,
+  PROJECT_TYPES,
+  LOCATIONS,
+  VINTAGE_YEARS,
+  BRIDGE_STATUS,
+  BRIDGE_PROGRESS_STAGES
+} from '../constants/registryData'
 
 const CrossChain = () => {
   const { credits, addCredit, updateCredit } = useCarbon()
@@ -37,9 +54,26 @@ const CrossChain = () => {
     details: '',
     projectName: '',
     vintage: '',
-    location: ''
+    location: '',
+    projectType: ''
   })
+  const [selectedRegistry, setSelectedRegistry] = useState(null)
   const toast = useToast()
+
+  useEffect(() => {
+    if (formData.registryId) {
+      const registry = SUPPORTED_REGISTRIES.find(r => r.id === formData.registryId)
+      setSelectedRegistry(registry)
+      // Reset dependent fields when registry changes
+      setFormData(prev => ({
+        ...prev,
+        location: '',
+        projectType: ''
+      }))
+    } else {
+      setSelectedRegistry(null)
+    }
+  }, [formData.registryId])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -68,6 +102,21 @@ const CrossChain = () => {
       return
     }
 
+    const registry = SUPPORTED_REGISTRIES.find(r => r.id === formData.registryId)
+    if (registry) {
+      const amount = Number(formData.amount)
+      if (amount < registry.minAmount || amount > registry.maxAmount) {
+        toast({
+          title: 'Invalid Amount',
+          description: `Amount must be between ${registry.minAmount} and ${registry.maxAmount} for ${registry.name}`,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        })
+        return
+      }
+    }
+
     const newCredit = addCredit(formData)
     
     // Reset form
@@ -77,7 +126,8 @@ const CrossChain = () => {
       details: '',
       projectName: '',
       vintage: '',
-      location: ''
+      location: '',
+      projectType: ''
     })
 
     toast({
@@ -121,12 +171,18 @@ const CrossChain = () => {
             
             <FormControl isRequired>
               <FormLabel>Source Registry</FormLabel>
-              <Input 
+              <Select 
                 name="registryId"
                 value={formData.registryId}
                 onChange={handleInputChange}
-                placeholder="Enter registry ID" 
-              />
+                placeholder="Select registry"
+              >
+                {SUPPORTED_REGISTRIES.map(registry => (
+                  <option key={registry.id} value={registry.id}>
+                    {registry.name}
+                  </option>
+                ))}
+              </Select>
             </FormControl>
 
             <FormControl isRequired>
@@ -140,9 +196,25 @@ const CrossChain = () => {
             </FormControl>
 
             <FormControl isRequired>
+              <FormLabel>Project Type</FormLabel>
+              <Select
+                name="projectType"
+                value={formData.projectType}
+                onChange={handleInputChange}
+                placeholder="Select project type"
+                isDisabled={!formData.registryId}
+              >
+                {formData.registryId && PROJECT_TYPES[formData.registryId]?.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl isRequired>
               <FormLabel>Amount to Bridge</FormLabel>
               <NumberInput 
-                min={1} 
+                min={selectedRegistry?.minAmount || 1}
+                max={selectedRegistry?.maxAmount || 1000000}
                 value={formData.amount}
                 onChange={handleNumberChange}
               >
@@ -152,26 +224,40 @@ const CrossChain = () => {
                   <NumberDecrementStepper />
                 </NumberInputStepper>
               </NumberInput>
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Vintage</FormLabel>
-              <Input 
-                name="vintage"
-                value={formData.vintage}
-                onChange={handleInputChange}
-                placeholder="Enter vintage year" 
-              />
+              {selectedRegistry && (
+                <Text fontSize="sm" color="gray.500" mt={1}>
+                  Min: {selectedRegistry.minAmount}, Max: {selectedRegistry.maxAmount}
+                </Text>
+              )}
             </FormControl>
 
             <FormControl>
               <FormLabel>Location</FormLabel>
-              <Input 
+              <Select
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                placeholder="Enter project location" 
-              />
+                placeholder="Select location"
+                isDisabled={!formData.registryId}
+              >
+                {formData.registryId && LOCATIONS[formData.registryId]?.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>Vintage</FormLabel>
+              <Select
+                name="vintage"
+                value={formData.vintage}
+                onChange={handleInputChange}
+                placeholder="Select vintage year"
+              >
+                {VINTAGE_YEARS.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </Select>
             </FormControl>
 
             <FormControl>
@@ -206,6 +292,7 @@ const CrossChain = () => {
               <Tr>
                 <Th>Project Name</Th>
                 <Th>Registry</Th>
+                <Th>Type</Th>
                 <Th>Amount</Th>
                 <Th>Vintage</Th>
                 <Th>Location</Th>
@@ -219,6 +306,7 @@ const CrossChain = () => {
                 <Tr key={credit.id}>
                   <Td>{credit.projectName}</Td>
                   <Td>{credit.registryId}</Td>
+                  <Td>{credit.projectType}</Td>
                   <Td>{credit.amount}</Td>
                   <Td>{credit.vintage}</Td>
                   <Td>{credit.location}</Td>
@@ -259,42 +347,62 @@ const CrossChain = () => {
           shadow="md"
         >
           <Heading size="md" mb={4}>Supported Registries</Heading>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>Registry</Th>
-                <Th>Status</Th>
-                <Th>Total Bridged</Th>
-                <Th>Last Update</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              <Tr>
-                <Td>Verified Carbon Standard (VCS)</Td>
-                <Td>
-                  <Badge colorScheme="green">Active</Badge>
-                </Td>
-                <Td>15,000,000</Td>
-                <Td>2024-02-20</Td>
-              </Tr>
-              <Tr>
-                <Td>Gold Standard (GS)</Td>
-                <Td>
-                  <Badge colorScheme="green">Active</Badge>
-                </Td>
-                <Td>5,000,000</Td>
-                <Td>2024-02-19</Td>
-              </Tr>
-              <Tr>
-                <Td>American Carbon Registry (ACR)</Td>
-                <Td>
-                  <Badge colorScheme="yellow">Coming Soon</Badge>
-                </Td>
-                <Td>-</Td>
-                <Td>-</Td>
-              </Tr>
-            </Tbody>
-          </Table>
+          <Accordion allowMultiple>
+            {SUPPORTED_REGISTRIES.map((registry) => (
+              <AccordionItem key={registry.id}>
+                <h2>
+                  <AccordionButton>
+                    <Box flex="1" textAlign="left">
+                      <HStack>
+                        <Text fontWeight="bold">{registry.name}</Text>
+                        <Badge colorScheme={registry.status === 'Active' ? 'green' : 'yellow'}>
+                          {registry.status}
+                        </Badge>
+                      </HStack>
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel pb={4}>
+                  <VStack align="stretch" spacing={3}>
+                    <Text>{registry.description}</Text>
+                    <HStack>
+                      <Text fontWeight="bold">Total Bridged:</Text>
+                      <Text>{registry.totalBridged}</Text>
+                    </HStack>
+                    <HStack>
+                      <Text fontWeight="bold">Last Update:</Text>
+                      <Text>{registry.lastUpdate}</Text>
+                    </HStack>
+                    <Box>
+                      <Text fontWeight="bold">Supported Project Types:</Text>
+                      <HStack wrap="wrap" mt={1}>
+                        {registry.projectTypes.map(type => (
+                          <Badge key={type} colorScheme="blue" mr={2} mb={2}>
+                            {type}
+                          </Badge>
+                        ))}
+                      </HStack>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold">Available Locations:</Text>
+                      <HStack wrap="wrap" mt={1}>
+                        {registry.locations.map(location => (
+                          <Badge key={location} colorScheme="purple" mr={2} mb={2}>
+                            {location}
+                          </Badge>
+                        ))}
+                      </HStack>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold">Credit Limits:</Text>
+                      <Text>Min: {registry.minAmount}, Max: {registry.maxAmount}</Text>
+                    </Box>
+                  </VStack>
+                </AccordionPanel>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </Box>
       </VStack>
     </Container>

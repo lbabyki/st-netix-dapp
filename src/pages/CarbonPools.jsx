@@ -74,7 +74,7 @@ const CarbonPools = () => {
     {
       name: 'CHAR',
       description: 'Toucan Biochar Carbon Pool',
-      price: '12.50',
+      price: '1.2',
       composition: [
         { project: 'Project A', percentage: 40 },
         { project: 'Project B', percentage: 35 },

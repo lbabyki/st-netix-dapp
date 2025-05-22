@@ -62,6 +62,11 @@ export const CarbonProvider = ({ children }) => {
     setCredits(prev => prev.filter(credit => credit.id !== id))
   }
 
+  const clearAllCredits = () => {
+    setCredits([])
+    localStorage.removeItem('carbonCredits')
+  }
+
   const getCreditById = (id) => {
     return credits.find(credit => credit.id === id)
   }
@@ -76,6 +81,7 @@ export const CarbonProvider = ({ children }) => {
     addCredit,
     updateCredit,
     deleteCredit,
+    clearAllCredits,
     getCreditById,
     getCreditsByStatus
   }
