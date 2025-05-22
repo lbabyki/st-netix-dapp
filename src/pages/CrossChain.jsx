@@ -23,9 +23,83 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  useToast,
+  Textarea,
 } from '@chakra-ui/react'
+import { useState } from 'react'
+import { useCarbon } from '../contexts/CarbonContext'
 
 const CrossChain = () => {
+  const { credits, addCredit, updateCredit } = useCarbon()
+  const [formData, setFormData] = useState({
+    registryId: '',
+    amount: '',
+    details: '',
+    projectName: '',
+    vintage: '',
+    location: ''
+  })
+  const toast = useToast()
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleNumberChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      amount: value
+    }))
+  }
+
+  const handleSubmit = () => {
+    if (!formData.registryId || !formData.amount || !formData.projectName) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+      return
+    }
+
+    const newCredit = addCredit(formData)
+    
+    // Reset form
+    setFormData({
+      registryId: '',
+      amount: '',
+      details: '',
+      projectName: '',
+      vintage: '',
+      location: ''
+    })
+
+    toast({
+      title: 'Success',
+      description: 'Carbon credit details saved successfully',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  }
+
+  const handleStatusUpdate = (id, newStatus) => {
+    updateCredit(id, { status: newStatus })
+    toast({
+      title: 'Status Updated',
+      description: `Credit status updated to ${newStatus}`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  }
+
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
@@ -45,14 +119,33 @@ const CrossChain = () => {
           <VStack spacing={6} align="stretch">
             <Heading size="md">Bridge Carbon Credits</Heading>
             
-            <FormControl>
+            <FormControl isRequired>
               <FormLabel>Source Registry</FormLabel>
-              <Input placeholder="Enter registry ID" />
+              <Input 
+                name="registryId"
+                value={formData.registryId}
+                onChange={handleInputChange}
+                placeholder="Enter registry ID" 
+              />
             </FormControl>
 
-            <FormControl>
+            <FormControl isRequired>
+              <FormLabel>Project Name</FormLabel>
+              <Input 
+                name="projectName"
+                value={formData.projectName}
+                onChange={handleInputChange}
+                placeholder="Enter project name" 
+              />
+            </FormControl>
+
+            <FormControl isRequired>
               <FormLabel>Amount to Bridge</FormLabel>
-              <NumberInput min={1}>
+              <NumberInput 
+                min={1} 
+                value={formData.amount}
+                onChange={handleNumberChange}
+              >
                 <NumberInputField placeholder="Enter amount" />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -61,8 +154,42 @@ const CrossChain = () => {
               </NumberInput>
             </FormControl>
 
-            <Button colorScheme="green" size="lg">
-              Bridge Credits
+            <FormControl>
+              <FormLabel>Vintage</FormLabel>
+              <Input 
+                name="vintage"
+                value={formData.vintage}
+                onChange={handleInputChange}
+                placeholder="Enter vintage year" 
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>Location</FormLabel>
+              <Input 
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                placeholder="Enter project location" 
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>Additional Details</FormLabel>
+              <Textarea 
+                name="details"
+                value={formData.details}
+                onChange={handleInputChange}
+                placeholder="Enter any additional details about the carbon credit" 
+              />
+            </FormControl>
+
+            <Button 
+              colorScheme="green" 
+              size="lg"
+              onClick={handleSubmit}
+            >
+              Save Credit Details
             </Button>
           </VStack>
         </Box>
@@ -73,40 +200,54 @@ const CrossChain = () => {
           rounded="lg"
           shadow="md"
         >
-          <Heading size="md" mb={4}>Bridge Status</Heading>
+          <Heading size="md" mb={4}>Saved Credits</Heading>
           <Table>
             <Thead>
               <Tr>
-                <Th>Transaction ID</Th>
-                <Th>Source Registry</Th>
+                <Th>Project Name</Th>
+                <Th>Registry</Th>
                 <Th>Amount</Th>
+                <Th>Vintage</Th>
+                <Th>Location</Th>
                 <Th>Status</Th>
                 <Th>Progress</Th>
+                <Th>Actions</Th>
               </Tr>
             </Thead>
             <Tbody>
-              <Tr>
-                <Td>0x1234...5678</Td>
-                <Td>VCS</Td>
-                <Td>1,000</Td>
-                <Td>
-                  <Badge colorScheme="green">Completed</Badge>
-                </Td>
-                <Td>
-                  <Progress value={100} size="sm" colorScheme="green" />
-                </Td>
-              </Tr>
-              <Tr>
-                <Td>0x8765...4321</Td>
-                <Td>GS</Td>
-                <Td>500</Td>
-                <Td>
-                  <Badge colorScheme="yellow">In Progress</Badge>
-                </Td>
-                <Td>
-                  <Progress value={60} size="sm" colorScheme="yellow" />
-                </Td>
-              </Tr>
+              {credits.map((credit) => (
+                <Tr key={credit.id}>
+                  <Td>{credit.projectName}</Td>
+                  <Td>{credit.registryId}</Td>
+                  <Td>{credit.amount}</Td>
+                  <Td>{credit.vintage}</Td>
+                  <Td>{credit.location}</Td>
+                  <Td>
+                    <Badge colorScheme={credit.status === 'Completed' ? 'green' : 'yellow'}>
+                      {credit.status}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    <Progress 
+                      value={credit.progress} 
+                      size="sm" 
+                      colorScheme={credit.status === 'Completed' ? 'green' : 'yellow'} 
+                    />
+                  </Td>
+                  <Td>
+                    <Button
+                      size="sm"
+                      colorScheme={credit.status === 'Completed' ? 'yellow' : 'green'}
+                      onClick={() => handleStatusUpdate(
+                        credit.id,
+                        credit.status === 'Completed' ? 'Pending' : 'Completed'
+                      )}
+                    >
+                      {credit.status === 'Completed' ? 'Mark Pending' : 'Mark Complete'}
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
             </Tbody>
           </Table>
         </Box>

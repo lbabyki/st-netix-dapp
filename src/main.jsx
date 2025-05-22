@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 import App from './App'
 import { WalletProvider } from './contexts/WalletContext'
+import { CarbonProvider } from './contexts/CarbonContext'
 import './index.css'
 
 const theme = extendTheme({
@@ -47,7 +48,9 @@ root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
       <WalletProvider>
-        <App />
+        <CarbonProvider>
+          <App />
+        </CarbonProvider>
       </WalletProvider>
     </ChakraProvider>
   </React.StrictMode>
