@@ -16,16 +16,187 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
   useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Progress,
+  useDisclosure,
 } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
 import { useNavigate } from 'react-router-dom'
+
+const VerificationStep = ({ isOpen, onClose, formData, onVerify }) => {
+  const [verificationStatus, setVerificationStatus] = useState({
+    standard: 'pending',
+    certification: 'pending',
+    vintage: 'pending',
+    location: 'pending',
+  })
+
+  const verifyStandard = () => {
+    // Mock verification logic
+    const standards = ['VCS', 'GS', 'CDM']
+    const isValid = standards.includes(formData.standard)
+    setVerificationStatus(prev => ({
+      ...prev,
+      standard: isValid ? 'verified' : 'failed'
+    }))
+    return isValid
+  }
+
+  const verifyCertification = () => {
+    // Mock verification logic
+    const isValid = formData.certification.length >= 8
+    setVerificationStatus(prev => ({
+      ...prev,
+      certification: isValid ? 'verified' : 'failed'
+    }))
+    return isValid
+  }
+
+  const verifyVintage = () => {
+    // Mock verification logic
+    const currentYear = new Date().getFullYear()
+    const isValid = formData.vintage >= 2000 && formData.vintage <= currentYear
+    setVerificationStatus(prev => ({
+      ...prev,
+      vintage: isValid ? 'verified' : 'failed'
+    }))
+    return isValid
+  }
+
+  const verifyLocation = () => {
+    // Mock verification logic
+    const isValid = formData.location.length >= 3
+    setVerificationStatus(prev => ({
+      ...prev,
+      location: isValid ? 'verified' : 'failed'
+    }))
+    return isValid
+  }
+
+  const handleVerify = () => {
+    const isStandardValid = verifyStandard()
+    const isCertificationValid = verifyCertification()
+    const isVintageValid = verifyVintage()
+    const isLocationValid = verifyLocation()
+
+    const allVerified = isStandardValid && isCertificationValid && isVintageValid && isLocationValid
+    onVerify(allVerified)
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'verified':
+        return 'green'
+      case 'failed':
+        return 'red'
+      default:
+        return 'yellow'
+    }
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Verify Carbon Credit Details</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4} align="stretch">
+            <Text fontSize="sm" color="gray.600">
+              Please verify the following details before creating your listing:
+            </Text>
+            
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Field</Th>
+                  <Th>Value</Th>
+                  <Th>Status</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                <Tr>
+                  <Td>Standard</Td>
+                  <Td>{formData.standard}</Td>
+                  <Td>
+                    <Badge colorScheme={getStatusColor(verificationStatus.standard)}>
+                      {verificationStatus.standard}
+                    </Badge>
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Certification</Td>
+                  <Td>{formData.certification}</Td>
+                  <Td>
+                    <Badge colorScheme={getStatusColor(verificationStatus.certification)}>
+                      {verificationStatus.certification}
+                    </Badge>
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Vintage Year</Td>
+                  <Td>{formData.vintage}</Td>
+                  <Td>
+                    <Badge colorScheme={getStatusColor(verificationStatus.vintage)}>
+                      {verificationStatus.vintage}
+                    </Badge>
+                  </Td>
+                </Tr>
+                <Tr>
+                  <Td>Location</Td>
+                  <Td>{formData.location}</Td>
+                  <Td>
+                    <Badge colorScheme={getStatusColor(verificationStatus.location)}>
+                      {verificationStatus.location}
+                    </Badge>
+                  </Td>
+                </Tr>
+              </Tbody>
+            </Table>
+
+            <Progress
+              value={
+                Object.values(verificationStatus).filter(status => status === 'verified').length * 25
+              }
+              colorScheme="green"
+              size="sm"
+            />
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={handleVerify}>
+            Verify Details
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
+}
 
 const CreateListing = () => {
   const { active } = useWeb3React()
   const navigate = useNavigate()
   const toast = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [isVerified, setIsVerified] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -59,6 +230,28 @@ const CreateListing = () => {
       return
     }
 
+    // Open verification modal before submitting
+    onOpen()
+  }
+
+  const handleVerificationComplete = (verified) => {
+    setIsVerified(verified)
+    onClose()
+
+    if (verified) {
+      submitListing()
+    } else {
+      toast({
+        title: 'Verification Failed',
+        description: 'Please check and correct the details before submitting',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const submitListing = async () => {
     setIsSubmitting(true)
     try {
       // Here you would typically:
@@ -223,6 +416,13 @@ const CreateListing = () => {
           </VStack>
         </form>
       </Box>
+
+      <VerificationStep
+        isOpen={isOpen}
+        onClose={onClose}
+        formData={formData}
+        onVerify={handleVerificationComplete}
+      />
     </Container>
   )
 }

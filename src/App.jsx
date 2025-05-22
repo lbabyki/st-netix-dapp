@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
-import Marketplace from './pages/Marketplace'
-import CreateListing from './pages/CreateListing'
-import ListingDetails from './pages/ListingDetails'
-import Profile from './pages/Profile'
+import Overview from './pages/Overview'
+import CarbonPools from './pages/CarbonPools'
+import Explorer from './pages/Explorer'
+import CrossChain from './pages/CrossChain'
+import Retirements from './pages/Retirements'
 
 function App() {
   return (
@@ -12,10 +13,11 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/create-listing" element={<CreateListing />} />
-        <Route path="/listing/:id" element={<ListingDetails />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/overview" element={<Overview />} />
+        <Route path="/carbon-pools" element={<CarbonPools />} />
+        <Route path="/explorer" element={<Explorer />} />
+        <Route path="/cross-chain" element={<CrossChain />} />
+        <Route path="/retirements" element={<Retirements />} />
       </Routes>
     </Router>
   )
