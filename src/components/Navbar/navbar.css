@@ -1,5 +1,5 @@
 .btn-active-hovered {
-  background-color: #ffffff; /* Màu nền mặc định */
+  background-color: #ffffff;
   transition: background-color 0.5s ease-in-out, box-shadow 0.3s ease-in-out;
   border: none;
 }
